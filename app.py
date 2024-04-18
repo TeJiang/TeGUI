@@ -1,25 +1,21 @@
-from PyQt6 import QtWidgets, uic
-from pyqtgraph import PlotWidget
-import pyqtgraph as pg
-import sys
+from PyQt6 import QtWidgets
+
+import sys, os
+
+basedir = os.path.dirname(__file__)
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
 
-        uic.loadUi('MainWindow.ui', self)
-        self.plot(
-            [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
-            [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20][::-1],
-        )
-    def plot(self, h, t):
-        self.graphwidget.plot(h, t)
+    def __init__(self):
+        super().__init__()
 
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-    main = MainWindow()
-    main.show()
-    sys.exit(app.exec())
+        self.setWindowTitle("Hello World")
+        l = QtWidgets.QLabel("My simple app.")
+        l.setMargin(10)
+        self.setCentralWidget(l)
+        self.show()
 
 if __name__ == '__main__':
-    main()
+    app = QtWidgets.QApplication(sys.argv)
+    w = MainWindow()
+    app.exec()
