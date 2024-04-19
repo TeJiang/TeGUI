@@ -507,7 +507,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QLineEdit" name="lineEdit_search">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -520,7 +520,34 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QComboBox" name="comboBox_search_filter">
+          <property name="currentIndex">
+           <number>1</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>.* all</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>.sav</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>.npy</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>.txt</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_add">
           <property name="maximumSize">
            <size>
             <width>25</width>

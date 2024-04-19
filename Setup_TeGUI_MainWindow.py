@@ -1,16 +1,20 @@
+from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QTreeWidget, QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog
+from pathlib import Path
+from PyQt6.QtCore import QDateTime
 import sys
-
+import os
 from PyQt6 import QtWidgets
-from pyqtgraph import PlotWidget
 import pyqtgraph as pg
 from TeGUI_MainWindow import Ui_MainWindow
 from Class_Example_Data import example_data
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.work_path = os.getcwd()
 
         self.data = example_data()
 
@@ -21,6 +25,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.set_index_image_zoom()
 
         self.set_hover()
+        self.set_menu()
+        self.setup_tree_widget()
+    def set_menu(self):
+        self.ui.actionSet_Working_path.triggered.connect(self.set_work_path)
+
+    def set_work_path(self):
+        dialog = QFileDialog()
+        directory = dialog.getExistingDirectory(None, "Select Directory", "")
+        if directory:
+            self.work_path = directory
+            print(f"Selected directory: {directory}")
+        else:
+            pass
+
+        self.populate_tree(self.work_path, self.ui.treeWidget.invisibleRootItem())
+        self.ui.treeWidget.expandAll()
+
+    def pass_work_path(self, path):
+        self.work_path = Path(path)
+        self.populate_tree(self.work_path, self.ui.treeWidget.invisibleRootItem())
+        self.ui.treeWidget.expandAll()
 
     def set_window(self):
         self.window_size = int(self.ui.comboBox_image_roi_size.currentText())
@@ -55,6 +80,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.RGB_image_zoom_Item = pg.ImageItem()
         self.RGB_image_zoom_Item.setImage(self.data.RGB_image)
         self.ui.widget_RGB_Image_Zoom.addItem(self.RGB_image_zoom_Item)
+        self.ui.widget_RGB_Image_Zoom.hideAxis("bottom")
+        self.ui.widget_RGB_Image_Zoom.hideAxis("left")
 
         self.vl_RGB_image_zoom = pg.InfiniteLine(pos=22.5, angle=90, movable=False)
         self.hl_RGB_image_zoom = pg.InfiniteLine(pos=22.5, angle= 0, movable=False)
@@ -74,6 +101,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.Index_image_zoom_Item = pg.ImageItem()
         self.Index_image_zoom_Item.setImage(self.data.Index_image)
         self.ui.widget_Index_Image_Zoom.addItem(self.Index_image_zoom_Item)
+        self.ui.widget_Index_Image_Zoom.getPlotItem().hideAxis("bottom")
+        self.ui.widget_Index_Image_Zoom.getPlotItem().hideAxis("left")
 
         self.vl_index_image_zoom = pg.InfiniteLine(pos=22.5, angle=90, movable=False)
         self.hl_index_image_zoom = pg.InfiniteLine(pos=22.5, angle=0, movable=False)
@@ -145,7 +174,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 # update spectrum
                 self.spectrum = self.data.cube[self.mouse_x, self.mouse_y, :]
-                self.ui.widget_Spectrum.plot(self.data.wl, self.spectrum, pen=pg.mkPen('r', width=1), clear=True)
+                self.ui.widget_Spectrum.plot(self.data.wl, self.spectrum, pen=pg.mkPen('w', width=2), clear=True)
 
         except:
             # TODO: debug here
@@ -153,3 +182,54 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def set_spectrum(self):
         ...
+    def setup_tree_widget(self):
+        self.ui.treeWidget.setHeaderLabels(['Name', 'Type', 'Size'])
+        self.populate_tree(self.work_path, self.ui.treeWidget.invisibleRootItem())
+        self.ui.treeWidget.expandAll()
+
+        self.ui.lineEdit_search.textChanged.connect(self.search_items)
+
+    def populate_tree(self, path, parent_item):
+        for name in sorted(os.listdir(path)):
+            full_path = os.path.join(path, name)
+            item = QTreeWidgetItem(parent_item, [name])
+            self.add_file_details(item, full_path)
+            if os.path.isdir(full_path):
+                self.populate_tree(full_path, item)
+            item.setExpanded(True)
+    def search_items(self, text):
+        # Function to search and filter items
+        text = text.lower()
+        keyword_list = text.split()
+        self.file_format_list = [".sav", ".txt", ".npy"]
+        self.file_format_filter = self.ui.comboBox_search_filter.currentText()
+        if self.file_format_filter in self.file_format_list:
+            if self.file_format_filter not in keyword_list:
+                keyword_list.append(self.ui.comboBox_search_filter.currentText())
+        print(keyword_list)
+
+        it = QTreeWidgetItemIterator(self.ui.treeWidget)
+        while it.value():
+            item = it.value()
+            item_text = item.text(0).lower()
+            if all(text in item_text for text in keyword_list):
+                item.setHidden(False)
+                self.show_parents(item)
+            else:
+                item.setHidden(True)
+            it += 1
+    def show_parents(self, item):
+        # Function to make sure all parent items are visible
+        while item.parent():
+            item = item.parent()
+            item.setHidden(False)
+
+    def add_file_details(self, item, path):
+        if os.path.isdir(path):
+            item.setText(2, "Folder")
+            item.setText(1, "")
+        else:
+            item.setText(2, f"{os.path.getsize(path)} bytes")
+            item.setText(1, os.path.splitext(path)[1] if os.path.splitext(path)[1] else "File")
+        # mod_time = QDateTime.fromSecsSinceEpoch(os.path.getmtime(path)).toString("yyyy-MM-dd HH:mm:ss")
+        # item.setText(3, mod_time)
