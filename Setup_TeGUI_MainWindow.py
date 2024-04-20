@@ -30,9 +30,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setup_tree_widget()
         self.set_splitter()
     def set_menu(self):
+        # change work path
         self.ui.actionSet_Working_path.triggered.connect(self.set_work_path)
+        # show / hide dock window
         self.bool_hide_dockWindow = False
         self.ui.actionHide_Files_Parameter.triggered.connect(self.show_hide_dockWindow)
+
+        self.ui.actionFlip_up_down.triggered.connect(self.flip_data_ud)
+        self.ui.actionFlip_left_right.triggered.connect(self.flip_data_lr)
+        self.ui.actionClockwise_rotate.triggered.connect(self.rotate_data_cw)
+        self.ui.actionAntiClockwise_rotate.triggered.connect(self.rotate_data_acw)
+
+    def flip_data_ud(self):
+        ...
+    def flip_image_lr(self):
+        ...
+    def rotate_data_cw(self):
+        ...
+    def rotate_data_acw(self):
+        ...
     def show_hide_dockWindow(self):
         if self.bool_hide_dockWindow:
             self.ui.dockWidget.show()
