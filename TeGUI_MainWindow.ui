@@ -55,7 +55,7 @@
         <number>0</number>
        </property>
        <item row="0" column="0">
-        <widget class="QSplitter" name="splitter">
+        <widget class="QSplitter" name="splitter_image_spectrum">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -148,7 +148,17 @@
                     <number>0</number>
                    </property>
                    <item row="0" column="0">
-                    <widget class="PlotWidget" name="widget_RGB_Image" native="true"/>
+                    <widget class="PlotWidget" name="widget_RGB_Image" native="true">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="cursor">
+                      <cursorShape>CrossCursor</cursorShape>
+                     </property>
+                    </widget>
                    </item>
                   </layout>
                  </widget>
@@ -157,12 +167,18 @@
               </widget>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_zoom" stretch="5,5">
+              <layout class="QVBoxLayout" name="verticalLayout_zoom" stretch="1,1">
                <property name="spacing">
                 <number>0</number>
                </property>
                <item>
                 <widget class="QFrame" name="frame_RGBZoom">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="frameShape">
                   <enum>QFrame::StyledPanel</enum>
                  </property>
@@ -186,7 +202,17 @@
                    <number>0</number>
                   </property>
                   <item row="0" column="0">
-                   <widget class="PlotWidget" name="widget_RGB_Image_Zoom" native="true"/>
+                   <widget class="PlotWidget" name="widget_RGB_Image_Zoom" native="true">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="cursor">
+                     <cursorShape>CrossCursor</cursorShape>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </widget>
@@ -216,7 +242,17 @@
                    <number>0</number>
                   </property>
                   <item row="0" column="0">
-                   <widget class="PlotWidget" name="widget_Index_Image_Zoom" native="true"/>
+                   <widget class="PlotWidget" name="widget_Index_Image_Zoom" native="true">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="cursor">
+                     <cursorShape>CrossCursor</cursorShape>
+                    </property>
+                   </widget>
                   </item>
                  </layout>
                 </widget>
@@ -248,7 +284,17 @@
                  <number>0</number>
                 </property>
                 <item row="0" column="0">
-                 <widget class="PlotWidget" name="widget_Index_Image" native="true"/>
+                 <widget class="PlotWidget" name="widget_Index_Image" native="true">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="cursor">
+                   <cursorShape>CrossCursor</cursorShape>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>
@@ -290,7 +336,11 @@
             <number>0</number>
            </property>
            <item row="0" column="0">
-            <widget class="PlotWidget" name="widget_Spectrum" native="true"/>
+            <widget class="PlotWidget" name="widget_Spectrum" native="true">
+             <property name="cursor">
+              <cursorShape>CrossCursor</cursorShape>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -426,6 +476,18 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
+   <property name="minimumSize">
+    <size>
+     <width>30</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>30</width>
+     <height>16777215</height>
+    </size>
+   </property>
    <property name="font">
     <font>
      <pointsize>12</pointsize>
@@ -511,6 +573,12 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>20</height>
+           </size>
+          </property>
           <property name="placeholderText">
            <string>Search ...</string>
           </property>
@@ -521,6 +589,12 @@
         </item>
         <item>
          <widget class="QComboBox" name="comboBox_search_filter">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>20</height>
+           </size>
+          </property>
           <property name="currentIndex">
            <number>1</number>
           </property>
@@ -550,8 +624,8 @@
          <widget class="QPushButton" name="pushButton_add">
           <property name="maximumSize">
            <size>
-            <width>25</width>
-            <height>16777215</height>
+            <width>30</width>
+            <height>30</height>
            </size>
           </property>
           <property name="text">
@@ -692,7 +766,7 @@
           <property name="maximumSize">
            <size>
             <width>30</width>
-            <height>16777215</height>
+            <height>20</height>
            </size>
           </property>
           <property name="text">

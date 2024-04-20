@@ -23,10 +23,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.set_RGB_image_zoom()
         self.set_index_image()
         self.set_index_image_zoom()
+        self.set_spectrum()
 
         self.set_hover()
         self.set_menu()
         self.setup_tree_widget()
+        self.set_splitter()
     def set_menu(self):
         self.ui.actionSet_Working_path.triggered.connect(self.set_work_path)
 
@@ -50,6 +52,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def set_window(self):
         self.window_size = int(self.ui.comboBox_image_roi_size.currentText())
         self.half_window = int((self.window_size - 1) / 2)
+
+    def set_splitter(self):
+        initial_size = int(self.ui.splitter_image_spectrum.size().height() / 2)
+        self.ui.splitter_image_spectrum.setSizes([initial_size, initial_size])
 
     def set_RGB_image(self):
         self.RGB_image_Item = pg.ImageItem()
@@ -93,7 +99,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.RGB_image_zoom_ROI = pg.ROI(
             [22.5 - self.half_window - 0.5, 22.5 - self.half_window - 0.5],
             [self.window_size, self.window_size],
-            pen="red",
+            pen=pg.mkPen("r", width=2),
             movable=False,
         )
         self.ui.widget_RGB_Image_Zoom.addItem(self.RGB_image_zoom_ROI)
@@ -114,13 +120,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.Index_image_zoom_ROI = pg.ROI(
             [22.5 - self.half_window - 0.5, 22.5 - self.half_window - 0.5],
             [self.window_size, self.window_size],
-            pen="red",
+            pen=pg.mkPen("r", width=2),
             movable=False,
         )
         self.ui.widget_Index_Image_Zoom.addItem(self.Index_image_zoom_ROI)
 
     def set_hover(self):
         self.RGB_image_Item.hoverEvent = self.imageHoverEvent_on
+        self.ui.widget_Spectrum.mouseMoveEvent = self.spectrumHoverEvent_On
 
     def imageHoverEvent_on(self, event):
         try:
@@ -128,6 +135,12 @@ class MainWindow(QtWidgets.QMainWindow):
             ppos = self.RGB_image_Item.mapToParent(pos)
             if (0 <= ppos.x() < self.data.RGB_image.shape[0]) and (0 <= ppos.y() < self.data.RGB_image.shape[1]):
                 self.mouse_x, self.mouse_y = int(ppos.x()), int(ppos.y()) # mouse position in not very precise, int value
+                self.ui.widget_RGB_Image.setTitle(
+                    f"x: {self.mouse_x}, y: {self.mouse_y}"
+                )
+                self.ui.widget_Index_Image.setTitle(
+                    f"x: {self.mouse_x}, y: {self.mouse_y}"
+                )
 
                 # update cross-line position in RGB image and index image
                 self.vl_RGB_image.setPos(ppos.x())
@@ -140,14 +153,14 @@ class MainWindow(QtWidgets.QMainWindow):
                     [
                         self.mouse_x - self.half_window,
                         self.mouse_y - self.half_window,
-                    ]
+                        ]
                 )
                 self.Index_image_mouse_ROI.setSize([self.window_size, self.window_size])
                 self.Index_image_mouse_ROI.setPos(
                     [
                         self.mouse_x - self.half_window,
                         self.mouse_y - self.half_window,
-                    ]
+                        ]
                 )
                 # update zoom image
                 self.vl_RGB_image_zoom.setPos(ppos.x())
@@ -156,7 +169,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     [
                         self.mouse_x - self.half_window,
                         self.mouse_y - self.half_window,
-                    ]
+                        ]
                 )
                 self.ui.widget_RGB_Image_Zoom.setXRange(self.mouse_x-22, self.mouse_x+22+1)
                 self.ui.widget_RGB_Image_Zoom.setYRange(self.mouse_y-22, self.mouse_y+22+1)
@@ -167,7 +180,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     [
                         self.mouse_x - self.half_window,
                         self.mouse_y - self.half_window,
-                    ]
+                        ]
                 )
                 self.ui.widget_Index_Image_Zoom.setXRange(self.mouse_x - 22, self.mouse_x + 22 + 1)
                 self.ui.widget_Index_Image_Zoom.setYRange(self.mouse_y - 22, self.mouse_y + 22 + 1)
@@ -175,13 +188,59 @@ class MainWindow(QtWidgets.QMainWindow):
                 # update spectrum
                 self.spectrum = self.data.cube[self.mouse_x, self.mouse_y, :]
                 self.ui.widget_Spectrum.plot(self.data.wl, self.spectrum, pen=pg.mkPen('w', width=2), clear=True)
+                # self.ui.widget_Spectrum.addItem(self.vl_spectrum, ignoreBounds=True)
+                # self.ui.widget_Spectrum.addItem(self.hl_spectrum, ignoreBounds=True)
+                self.ui.widget_Spectrum.addItem(self.R_line)
+                self.ui.widget_Spectrum.addItem(self.G_line)
+                self.ui.widget_Spectrum.addItem(self.B_line)
 
         except:
             # TODO: debug here
             print("Thre is problem for imageHoverEvent on")
 
     def set_spectrum(self):
-        ...
+        self.ui.widget_Spectrum.setTitle("Spectrum")
+
+        self.vl_spectrum = pg.InfiniteLine(angle=90, movable=False)
+        self.hl_spectrum = pg.InfiniteLine(angle=0, movable=False)
+        self.ui.widget_Spectrum.addItem(self.vl_spectrum, ignoreBounds=True)
+        self.ui.widget_Spectrum.addItem(self.hl_spectrum, ignoreBounds=True)
+
+        self.R_line = pg.InfiniteLine(
+            pos=self.data.wl[self.data.rgb_indices[0]],
+            angle=90,
+            pen=pg.mkPen("r", width=1),
+            hoverPen=pg.mkPen("r", width=4),
+            movable=True,
+        )
+        self.G_line = pg.InfiniteLine(
+            pos=self.data.wl[self.data.rgb_indices[1]],
+            angle=90,
+            pen=pg.mkPen("g", width=1),
+            hoverPen=pg.mkPen("g", width=4),
+            movable=True,
+        )
+        self.B_line = pg.InfiniteLine(
+            pos=self.data.wl[self.data.rgb_indices[2]],
+            angle=90,
+            pen=pg.mkPen("b", width=1),
+            hoverPen=pg.mkPen("b", width=4),
+            movable=True,
+        )
+
+        self.ui.widget_Spectrum.addItem(self.R_line)
+        self.ui.widget_Spectrum.addItem(self.G_line)
+        self.ui.widget_Spectrum.addItem(self.B_line)
+
+    def spectrumHoverEvent_On(self, evt):
+
+        pos = evt.position()
+        ppos = self.ui.widget_Spectrum.plotItem.vb.mapSceneToView(pos)
+        self.ui.widget_Spectrum.setTitle(
+            f"wl/wn: {ppos.x():.4f}, ref: {ppos.y():.4f}"
+        )
+        self.vl_spectrum.setPos(ppos.x())
+        self.hl_spectrum.setPos(ppos.y())
     def setup_tree_widget(self):
         self.ui.treeWidget.setHeaderLabels(['Name', 'Type', 'Size'])
         self.populate_tree(self.work_path, self.ui.treeWidget.invisibleRootItem())
@@ -201,12 +260,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # Function to search and filter items
         text = text.lower()
         keyword_list = text.split()
+        # also filter the file format
         self.file_format_list = [".sav", ".txt", ".npy"]
         self.file_format_filter = self.ui.comboBox_search_filter.currentText()
         if self.file_format_filter in self.file_format_list:
             if self.file_format_filter not in keyword_list:
                 keyword_list.append(self.ui.comboBox_search_filter.currentText())
-        print(keyword_list)
 
         it = QTreeWidgetItemIterator(self.ui.treeWidget)
         while it.value():
