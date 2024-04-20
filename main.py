@@ -12,6 +12,8 @@ def main():
     mainwindow.pass_work_path(path=user_path)
 
     mainwindow.show()
+    # set window title
+    mainwindow.setWindowTitle("TeGui 0.1.0")
     sys.exit(app.exec())
 
 if __name__ == '__main__':
