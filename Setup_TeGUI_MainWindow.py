@@ -31,6 +31,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.set_splitter()
     def set_menu(self):
         self.ui.actionSet_Working_path.triggered.connect(self.set_work_path)
+        self.bool_hide_dockWindow = False
+        self.ui.actionHide_Files_Parameter.triggered.connect(self.show_hide_dockWindow)
+    def show_hide_dockWindow(self):
+        if self.bool_hide_dockWindow:
+            self.ui.dockWidget.show()
+            self.ui.dockWidget_Files.show()
+            self.bool_hide_dockWindow = False
+        else:
+            self.ui.dockWidget_Files.hide()
+            self.ui.dockWidget.hide()
+            self.bool_hide_dockWindow = True
+
 
     def set_work_path(self):
         dialog = QFileDialog()
@@ -61,6 +73,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.RGB_image_Item = pg.ImageItem()
         self.RGB_image_Item.setImage(self.data.RGB_image)
         self.ui.widget_RGB_Image.addItem(self.RGB_image_Item)
+        self.ui.widget_RGB_Image.setAspectLocked(lock=True, ratio=1)
+        self.ui.widget_RGB_Image.setTitle("RGB image")
 
         self.vl_RGB_image = pg.InfiniteLine(angle=90, movable=False)
         self.hl_RGB_image = pg.InfiniteLine(angle= 0, movable=False)
@@ -74,6 +88,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.Index_image_Item = pg.ImageItem()
         self.Index_image_Item.setImage(self.data.Index_image)
         self.ui.widget_Index_Image.addItem(self.Index_image_Item)
+        self.ui.widget_Index_Image.setAspectLocked(lock=True, ratio=1)
+        self.ui.widget_Index_Image.setTitle("Index image")
 
         self.vl_index_image = pg.InfiniteLine(angle=90, movable=False)
         self.hl_index_image = pg.InfiniteLine(angle= 0, movable=False)
@@ -188,23 +204,25 @@ class MainWindow(QtWidgets.QMainWindow):
                 # update spectrum
                 self.spectrum = self.data.cube[self.mouse_x, self.mouse_y, :]
                 self.ui.widget_Spectrum.plot(self.data.wl, self.spectrum, pen=pg.mkPen('w', width=2), clear=True)
-                # self.ui.widget_Spectrum.addItem(self.vl_spectrum, ignoreBounds=True)
-                # self.ui.widget_Spectrum.addItem(self.hl_spectrum, ignoreBounds=True)
+                self.ui.widget_Spectrum.addItem(self.vl_spectrum, ignoreBounds=True)
+                self.ui.widget_Spectrum.addItem(self.hl_spectrum, ignoreBounds=True)
                 self.ui.widget_Spectrum.addItem(self.R_line)
                 self.ui.widget_Spectrum.addItem(self.G_line)
                 self.ui.widget_Spectrum.addItem(self.B_line)
+                # TODO: hover for RGB lines not working, set up drag
 
         except:
             # TODO: debug here
-            print("Thre is problem for imageHoverEvent on")
+            pass
+            # print("Thre is problem for imageHoverEvent on")
 
     def set_spectrum(self):
         self.ui.widget_Spectrum.setTitle("Spectrum")
+        self.ui.widget_Spectrum.setLabel("left", "Reflectance")
+        self.ui.widget_Spectrum.setLabel("bottom", "Wavelength", units='um')
 
         self.vl_spectrum = pg.InfiniteLine(angle=90, movable=False)
         self.hl_spectrum = pg.InfiniteLine(angle=0, movable=False)
-        self.ui.widget_Spectrum.addItem(self.vl_spectrum, ignoreBounds=True)
-        self.ui.widget_Spectrum.addItem(self.hl_spectrum, ignoreBounds=True)
 
         self.R_line = pg.InfiniteLine(
             pos=self.data.wl[self.data.rgb_indices[0]],
