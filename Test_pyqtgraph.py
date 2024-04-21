@@ -4,87 +4,59 @@ pyqtgraph.examples.run()
 
 # %%%%
 """
-Demonstrates some customized mouse interaction by drawing a crosshair that follows 
-the mouse.
+This example shows how to insert text into a scene using TextItem. This class 
+is for displaying text that is anchored to a particular location in the data
+coordinate system, but which is always displayed unscaled. 
+
+For text that scales with the data, use QTextItem. 
+For text that can be placed in a layout, use LabelItem.
 """
 
 import numpy as np
 
 import pyqtgraph as pg
+from pyqtgraph.Qt import QtCore
 
-#generate layout
-app = pg.mkQApp("Crosshair Example")
-win = pg.GraphicsLayoutWidget(show=True)
-win.setWindowTitle('pyqtgraph example: crosshair')
-label = pg.LabelItem(justify='right')
-win.addItem(label)
-p1 = win.addPlot(row=1, col=0)
-# customize the averaged curve that can be activated from the context menu:
-p1.avgPen = pg.mkPen('#FFFFFF')
-p1.avgShadowPen = pg.mkPen('#8080DD', width=10)
+x = np.linspace(-20, 20, 1000)
+y = np.sin(x) / x
+plot = pg.plot()  ## create an empty plot widget
+plot.setYRange(-1, 2)
+plot.setWindowTitle('pyqtgraph example: text')
+curve = plot.plot(x, y)  ## add a single curve
 
-p2 = win.addPlot(row=2, col=0)
+## Create text object, use HTML tags to specify color/size
+text = pg.TextItem(
+    html='<div style="text-align: center"><span style="color: #FFF;">This is the</span><br><span style="color: #FF0; font-size: 16pt;">PEAK</span></div>',
+    anchor=(-0.3, 0.5), angle=45, border='w', fill=(0, 0, 255, 100))
+plot.addItem(text)
+text.setPos(0, y.max())
 
-region = pg.LinearRegionItem()
-region.setZValue(10)
-# Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this
-# item when doing auto-range calculations.
-p2.addItem(region, ignoreBounds=True)
+## Draw an arrowhead next to the text box
+arrow = pg.ArrowItem(pos=(0, y.max()), angle=-45)
+plot.addItem(arrow)
 
-#pg.dbg()
-p1.setAutoVisible(y=True)
+## Set up an animated arrow and text that track the curve
+curvePoint = pg.CurvePoint(curve)
+plot.addItem(curvePoint)
+text2 = pg.TextItem("test", anchor=(0.5, -1.0))
+text2.setParentItem(curvePoint)
+arrow2 = pg.ArrowItem(angle=90)
+arrow2.setParentItem(curvePoint)
 
+## update position every 10ms
+index = 0
 
-#create numpy arrays
-#make the numbers large to show that the range shows data from 10000 to all the way 0
-data1 = 10000 + 15000 * pg.gaussianFilter(np.random.random(size=10000), 10) + 3000 * np.random.random(size=10000)
-data2 = 15000 + 15000 * pg.gaussianFilter(np.random.random(size=10000), 10) + 3000 * np.random.random(size=10000)
-
-p1.plot(data1, pen="r")
-p1.plot(data2, pen="g")
-
-p2d = p2.plot(data1, pen="w")
-# bound the LinearRegionItem to the plotted data
-region.setClipItem(p2d)
 
 def update():
-    region.setZValue(10)
-    minX, maxX = region.getRegion()
-    p1.setXRange(minX, maxX, padding=0)
-
-region.sigRegionChanged.connect(update)
-
-def updateRegion(window, viewRange):
-    rgn = viewRange[0]
-    region.setRegion(rgn)
-
-p1.sigRangeChanged.connect(updateRegion)
-
-region.setRegion([1000, 2000])
-
-#cross hair
-vLine = pg.InfiniteLine(angle=90, movable=False)
-hLine = pg.InfiniteLine(angle=0, movable=False)
-p1.addItem(vLine, ignoreBounds=True)
-p1.addItem(hLine, ignoreBounds=True)
+    global curvePoint, index
+    index = (index + 1) % len(x)
+    curvePoint.setPos(float(index) / (len(x) - 1))
+    text2.setText('[%0.1f, %0.1f]' % (x[index], y[index]))
 
 
-vb = p1.vb
-
-def mouseMoved(evt):
-    pos = evt
-    if p1.sceneBoundingRect().contains(pos):
-        mousePoint = vb.mapSceneToView(pos)
-        index = int(mousePoint.x())
-        if index > 0 and index < len(data1):
-            label.setText("<span style='font-size: 12pt'>x=%0.1f,   <span style='color: red'>y1=%0.1f</span>,   <span style='color: green'>y2=%0.1f</span>" % (mousePoint.x(), data1[index], data2[index]))
-        vLine.setPos(mousePoint.x())
-        hLine.setPos(mousePoint.y())
-
-
-
-p1.scene().sigMouseMoved.connect(mouseMoved)
-
+timer = QtCore.QTimer()
+timer.timeout.connect(update)
+timer.start(10)
 
 if __name__ == '__main__':
     pg.exec()

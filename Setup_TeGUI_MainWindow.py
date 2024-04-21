@@ -230,7 +230,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except:
             # TODO: debug here
             pass
-            # print("Thre is problem for imageHoverEvent on")
+            # print("There is problem for imageHoverEvent on")
 
     def set_spectrum(self):
         self.ui.widget_Spectrum.setTitle("Spectrum")
@@ -266,15 +266,47 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.widget_Spectrum.addItem(self.G_line)
         self.ui.widget_Spectrum.addItem(self.B_line)
 
+        self.arrow_spectrum_point = pg.ArrowItem(
+            angle=90,
+            headLen=5,
+            headWidth=5,
+            tailWidth=5,
+            pen=pg.mkPen("r"),
+            brush=pg.mkBrush("r")
+        )
+
     def spectrumHoverEvent_On(self, evt):
 
         pos = evt.position()
         ppos = self.ui.widget_Spectrum.plotItem.vb.mapSceneToView(pos)
-        self.ui.widget_Spectrum.setTitle(
-            f"wl/wn: {ppos.x():.4f}, ref: {ppos.y():.4f}"
-        )
+        self.closest_wl_pos = int(self.find_wl_pos(ppos.x())[0])
+        # print(self.closest_wl_pos, self.data.wl[self.closest_wl_pos], self.spectrum[self.closest_wl_pos])
         self.vl_spectrum.setPos(ppos.x())
         self.hl_spectrum.setPos(ppos.y())
+
+        items_list = [isinstance(x, pg.ArrowItem) for x in self.ui.widget_Spectrum.items()]
+        if True in items_list:
+            pass
+        else:
+            self.ui.widget_Spectrum.addItem(self.arrow_spectrum_point)
+
+        if hasattr(self, "spectrum"):
+            self.arrow_spectrum_point.setPos(self.data.wl[self.closest_wl_pos], self.spectrum[self.closest_wl_pos])
+            self.ui.widget_Spectrum.setTitle(
+                f"wl: {self.data.wl[self.closest_wl_pos]:.4f}, "
+                f"ref: {self.spectrum[self.closest_wl_pos]:.4f}, "
+                f"depth: {abs(ppos.y() - self.spectrum[self.closest_wl_pos]):.4f}, "
+                f"{(abs(ppos.y() - self.spectrum[self.closest_wl_pos]) / ppos.y() * 100):.1f}"
+            )
+    def find_wl_pos(self, pos_x):
+        self.wl = self.data.wl.copy()
+        distance_list = [abs(pos_x - x) for x in self.wl]
+        min_distance = min(distance_list)
+        min_pos = [index for index, value in enumerate(distance_list) if value == min_distance]
+        # print(int(min_pos[0]), min_distance)
+        return min_pos
+
+
     def setup_tree_widget(self):
         self.ui.treeWidget.setHeaderLabels(['Name', 'Type', 'Size'])
         self.populate_tree(self.work_path, self.ui.treeWidget.invisibleRootItem())
