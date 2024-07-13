@@ -8,8 +8,8 @@ def main():
     mainwindow = MainWindow()
 
     # set default path
-    user_path = Path("/Users/tejiang/Desktop/MicrOmegaGUI/data")
-    mainwindow.pass_work_path(path=user_path)
+    # user_path = Path("/Users/tejiang/Desktop/MicrOmegaGUI/data")
+    # mainwindow.pass_work_path(path=user_path)
 
     mainwindow.show()
     # set window title

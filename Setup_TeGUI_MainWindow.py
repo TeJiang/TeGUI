@@ -296,7 +296,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 f"wl: {self.data.wl[self.closest_wl_pos]:.4f}, "
                 f"ref: {self.spectrum[self.closest_wl_pos]:.4f}, "
                 f"depth: {abs(ppos.y() - self.spectrum[self.closest_wl_pos]):.4f}, "
-                f"{(abs(ppos.y() - self.spectrum[self.closest_wl_pos]) / ppos.y() * 100):.1f}"
+                f"{(abs(ppos.y() - self.spectrum[self.closest_wl_pos]) / ppos.y() * 100):.1f}%"
             )
     def find_wl_pos(self, pos_x):
         self.wl = self.data.wl.copy()
