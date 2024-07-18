@@ -1,12 +1,10 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QTreeWidget, QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog
+from PyQt6.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog
 from pathlib import Path
-from PyQt6.QtCore import QDateTime
-import sys
 import os
 from PyQt6 import QtWidgets
 import pyqtgraph as pg
 from TeGUI_MainWindow import Ui_MainWindow
-from Class_Example_Data import example_data
+from src.TeGUI.example_data.Class_Example_Data import example_data
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
