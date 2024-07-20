@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 from PyQt6 import QtWidgets
 import pyqtgraph as pg
-from TeGUI_MainWindow import Ui_MainWindow
+from src.TeGUI.gui.TeGUI_MainWindow import Ui_MainWindow
 from src.TeGUI.example_data.Class_Example_Data import example_data
 
 class MainWindow(QtWidgets.QMainWindow):

@@ -1,5 +1,5 @@
 from PyQt6 import QtWidgets
-from Setup_TeGUI_MainWindow import MainWindow
+from src.TeGUI.gui.main_window import MainWindow
 from pathlib import Path
 import sys
 
