@@ -182,7 +182,7 @@ class MainWindow(QMainWindow):
                 self.ui.widget_Index_Image.setTitle(f"x: {self.mouse_x}, y: {self.mouse_y}")
 
                 # Update cross-line positions and ROI positions
-                self.update_cross_lines_and_ROI(self.mouse_x, self.mouse_y)
+                self.update_cross_lines_and_ROI(ppos.x(), ppos.y())
 
                 # Update zoom image
                 self.update_zoom(self.mouse_x, self.mouse_y)
@@ -200,14 +200,14 @@ class MainWindow(QMainWindow):
             getattr(self, f'vl_{name}').setPos(mouse_x)
             getattr(self, f'hl_{name}').setPos(mouse_y)
             getattr(self, f'{name}_ROI').setSize([self.window_size, self.window_size])
-            getattr(self, f'{name}_ROI').setPos([mouse_x - self.half_window, mouse_y - self.half_window])
+            getattr(self, f'{name}_ROI').setPos([int(mouse_x) - self.half_window, int(mouse_y) - self.half_window])
 
     def update_zoom(self, mouse_x, mouse_y):
         for name in ['RGB_image_zoom', 'Index_image_zoom']:
-            getattr(self, f'vl_{name}').setPos(mouse_x)
-            getattr(self, f'hl_{name}').setPos(mouse_y)
+            getattr(self, f'vl_{name}').setPos(mouse_x+0.5)
+            getattr(self, f'hl_{name}').setPos(mouse_y+0.5)
             getattr(self, f'{name}_ROI').setPos([mouse_x - self.half_window, mouse_y - self.half_window])
-            zoom_widget = getattr(self.ui, f'widget_{name}')
+            zoom_widget = getattr(self.ui, f'widget_{name}'.replace("image_zoom","Image_Zoom"))
             zoom_widget.setXRange(mouse_x - 22, mouse_x + 23)
             zoom_widget.setYRange(mouse_y - 22, mouse_y + 23)
 
