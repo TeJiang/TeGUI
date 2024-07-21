@@ -3,7 +3,7 @@ from src.TeGUI.cube_analysis.cube import Cube
 from src.TeGUI.image_analysis.image import RGBImage, GrayscaleImage
 from src.TeGUI.spectrum_analysis.spectrum import SinglePixelSpectrum, MultiSpectra
 from src.TeGUI.roi_analysis.roi import ROI
-from src.TeGUI.example_data.example_data import ExampleData
+from src.TeGUI.data_analysis.example_data import ExampleData
 class IO:
     @staticmethod
     def load_cube(file_path):

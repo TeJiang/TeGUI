@@ -1,7 +1,6 @@
 from PyQt6.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog, QMainWindow
 import pyqtgraph as pg
 import os
-import numpy as np
 
 from src.TeGUI.gui.TeGUI_MainWindow import Ui_MainWindow
 from src.TeGUI.io.io import IO
@@ -12,68 +11,20 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.work_path = os.getcwd()
-
-        # Use IO class to load example data
         self.data = IO.load_example_data()
+        self.setup_ui()
 
+    def setup_ui(self):
         self.set_window()
         self.set_RGB_image()
         self.set_RGB_image_zoom()
         self.set_index_image()
         self.set_index_image_zoom()
         self.set_spectrum()
-
         self.set_hover()
         self.set_menu()
         self.setup_tree_widget()
         self.set_splitter()
-
-    def set_menu(self):
-        self.ui.actionSet_Working_path.triggered.connect(self.set_work_path)
-        self.bool_hide_dockWindow = False
-        self.ui.actionHide_Files_Parameter.triggered.connect(self.show_hide_dockWindow)
-        self.ui.actionFlip_up_down.triggered.connect(self.flip_data_ud)
-        self.ui.actionFlip_left_right.triggered.connect(self.flip_data_lr)
-        self.ui.actionClockwise_rotate.triggered.connect(self.rotate_data_cw)
-        self.ui.actionAntiClockwise_rotate.triggered.connect(self.rotate_data_acw)
-
-    def flip_data_ud(self):
-        # Example flip logic
-        self.data.RGB_image = self.data.RGB_image[::-1, :]
-        self.update_RGB_image()
-
-    def flip_data_lr(self):
-        # Example flip logic
-        self.data.RGB_image = self.data.RGB_image[:, ::-1]
-        self.update_RGB_image()
-
-    def rotate_data_cw(self):
-        # Example rotate logic
-        self.data.RGB_image = np.rot90(self.data.RGB_image, -1)
-        self.update_RGB_image()
-
-    def rotate_data_acw(self):
-        # Example rotate logic
-        self.data.RGB_image = np.rot90(self.data.RGB_image, 1)
-        self.update_RGB_image()
-
-    def show_hide_dockWindow(self):
-        if self.bool_hide_dockWindow:
-            self.ui.dockWidget.show()
-            self.ui.dockWidget_Files.show()
-            self.bool_hide_dockWindow = False
-        else:
-            self.ui.dockWidget_Files.hide()
-            self.ui.dockWidget.hide()
-            self.bool_hide_dockWindow = True
-
-    def set_work_path(self):
-        dialog = QFileDialog()
-        directory = dialog.getExistingDirectory(None, "Select Directory", "")
-        if directory:
-            self.work_path = directory
-            self.populate_tree(self.work_path, self.ui.treeWidget.invisibleRootItem())
-            self.ui.treeWidget.expandAll()
 
     def set_window(self):
         self.window_size = int(self.ui.comboBox_image_roi_size.currentText())
@@ -122,6 +73,31 @@ class MainWindow(QMainWindow):
         widget.addItem(getattr(self, f'hl_{name}'), ignoreBounds=True)
         setattr(self, f'{name}_ROI', pg.ROI([0, 0], [self.window_size, self.window_size], pen=pg.mkPen('r', width=2), movable=False))
         widget.addItem(getattr(self, f'{name}_ROI'))
+
+    def set_menu(self):
+        self.ui.actionSet_Working_path.triggered.connect(self.set_work_path)
+        self.bool_hide_dockWindow = False
+        self.ui.actionHide_Files_Parameter.triggered.connect(self.show_hide_dockWindow)
+        self.ui.actionFlip_up_down.triggered.connect(self.flip_data_ud)
+        self.ui.actionFlip_left_right.triggered.connect(self.flip_data_lr)
+        self.ui.actionClockwise_rotate.triggered.connect(self.rotate_data_cw)
+        self.ui.actionAntiClockwise_rotate.triggered.connect(self.rotate_data_acw)
+
+    def flip_data_ud(self):
+        self.data.RGB_image = DataOperations.flip_ud(self.data.RGB_image)
+        self.update_RGB_image()
+
+    def flip_data_lr(self):
+        self.data.RGB_image = DataOperations.flip_lr(self.data.RGB_image)
+        self.update_RGB_image()
+
+    def rotate_data_cw(self):
+        self.data.RGB_image = DataOperations.rotate_cw(self.data.RGB_image)
+        self.update_RGB_image()
+
+    def rotate_data_acw(self):
+        self.data.RGB_image = DataOperations.rotate_acw(self.data.RGB_image)
+        self.update_RGB_image()
 
     def update_RGB_image(self):
         self.RGB_image_Item.setImage(self.data.RGB_image)
@@ -172,6 +148,7 @@ class MainWindow(QMainWindow):
             pen=pg.mkPen("r"),
             brush=pg.mkBrush("r")
         )
+
     def imageHoverEvent_on(self, event):
         try:
             pos = event.pos()
@@ -204,10 +181,10 @@ class MainWindow(QMainWindow):
 
     def update_zoom(self, mouse_x, mouse_y):
         for name in ['RGB_image_zoom', 'Index_image_zoom']:
-            getattr(self, f'vl_{name}').setPos(mouse_x+0.5)
-            getattr(self, f'hl_{name}').setPos(mouse_y+0.5)
+            getattr(self, f'vl_{name}').setPos(mouse_x + 0.5)
+            getattr(self, f'hl_{name}').setPos(mouse_y + 0.5)
             getattr(self, f'{name}_ROI').setPos([mouse_x - self.half_window, mouse_y - self.half_window])
-            zoom_widget = getattr(self.ui, f'widget_{name}'.replace("image_zoom","Image_Zoom"))
+            zoom_widget = getattr(self.ui, f'widget_{name}'.replace("image_zoom", "Image_Zoom"))
             zoom_widget.setXRange(mouse_x - 22, mouse_x + 23)
             zoom_widget.setYRange(mouse_y - 22, mouse_y + 23)
 
@@ -287,3 +264,21 @@ class MainWindow(QMainWindow):
         else:
             item.setText(1, os.path.splitext(path)[1] if os.path.splitext(path)[1] else "File")
             item.setText(2, f"{os.path.getsize(path)} bytes")
+
+    def set_work_path(self):
+        dialog = QFileDialog()
+        directory = dialog.getExistingDirectory(None, "Select Directory", "")
+        if directory:
+            self.work_path = directory
+            self.populate_tree(self.work_path, self.ui.treeWidget.invisibleRootItem())
+            self.ui.treeWidget.expandAll()
+
+    def show_hide_dockWindow(self):
+        if self.bool_hide_dockWindow:
+            self.ui.dockWidget.show()
+            self.ui.dockWidget_Files.show()
+            self.bool_hide_dockWindow = False
+        else:
+            self.ui.dockWidget_Files.hide()
+            self.ui.dockWidget.hide()
+            self.bool_hide_dockWindow = True

@@ -1,6 +1,6 @@
 class Image:
     def __init__(self, data):
-        self.data = data
+        self.image = data
 
     def display(self):
         # Generic display method, can be overridden by subclasses

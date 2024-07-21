@@ -1,6 +1,11 @@
 import numpy as np
 import random
 
+from src.TeGUI.cube_analysis.cube import Cube
+from src.TeGUI.image_analysis.image import Image
+from src.TeGUI.spectrum_analysis.spectrum import Spectrum
+from src.TeGUI.data_analysis.sample import Sample
+
 class ExampleData:
     def __init__(self, x_num=256, y_num=256, wl_num=224):
         self.x_num, self.y_num, self.wl_num = x_num, y_num, wl_num
