@@ -15,26 +15,51 @@ the spectral dimension directly after specifying the spatial coordinates.
 import numpy as np
 from src.TeGUI.image_analysis.image import RGBImage, GrayscaleImage
 from src.TeGUI.spectrum_analysis.spectrum import SinglePixelSpectrum, MultiSpectra
+from src.TeGUI.spectrum_analysis.wl_wn import Wl_Wn
 
 class Cube:
-    def __init__(self, data):
+    def __init__(self, cube, x, x_type="wl_um"):
         # default as [xx, yy, wl], numpy array
-        self.cube = data
+        self.cube =cube
+        self.x = x
+        self.x_type = x_type
         self.cube_original = self.cube.copy()
         self.r_image, self.g_image, self.b_image, self.rgb_image = None, None, None, None
+        self.gray_image = None
+    def set_wl_wn(self):
+        self.wl_wn = Wl_Wn(x=self.x, x_type=self.x_type)
     def rotate_cw(self):
         self.cube = np.rot90(self.cube, k=-1, axes=(0, 1))
     def rotate_acw(self):
-        self.cube = np.rot90(self.cube, k=-1, axes=(1, 0))
+        self.cube = np.rot90(self.cube, k=1, axes=(0, 1))
     def flip_lr(self):
         self.cube = np.flip(self.cube, axis=1)
     def flip_ud(self):
         self.cube = np.flip(self.cube, axis=0)
-    def set_rgb_image_from_index(self, r_pos, g_pos, b_pos):
-        self.r_image = self.cube[:, :, r_pos]
-        self.g_image = self.cube[:, :, g_pos]
-        self.b_image = self.cube[:, :, b_pos]
+    def set_rgb_image_from_value(self, r_value, g_value, b_value):
+        self.r_value_c, self.r_pos = self.wl_wn.find_closest_value(ref_value=r_value,x_type_wl_or_wn='wl')
+        self.g_value_c, self.g_pos = self.wl_wn.find_closest_value(ref_value=g_value, x_type_wl_or_wn='wl')
+        self.b_value_c, self.b_pos = self.wl_wn.find_closest_value(ref_value=b_value, x_type_wl_or_wn='wl')
+        self.set_rgb_image_from_index(self.r_pos, self.g_pos, self.b_pos)
 
-        self.rgb_image = RGBImage(self.cube[:, :, [r_pos, g_pos, b_pos]])
+    def set_rgb_image_from_index(self, r_pos, g_pos, b_pos):
+        self.r_pos, self.g_pos, self.b_pos = r_pos, g_pos, b_pos
+        # find corresponding rgb values, depends on wl, wn
+        if self.x_type == "wl_um" or self.x_type == "wl_nm":
+            self.r_value_c, self.g_value_c, self.b_value_c = self.wl_wn.wn[self.r_pos], self.wl_wn.wn[self.g_pos], self.wl_wn.wn[self.b_pos]
+        elif self.x_type == "wn_cm":
+            self.r_value_c, self.g_value_c, self.b_value_c = self.wl_wn.wn[self.r_pos], self.wl_wn.wn[self.g_pos], self.wl_wn.wn[self.b_pos]
+        # creat r g b layers
+        self.r_image = self.cube[:, :, self.r_pos]
+        self.g_image = self.cube[:, :, self.g_pos]
+        self.b_image = self.cube[:, :, self.b_pos]
+
+        # creat rgb image
+        self.rgb_image = RGBImage(self.cube[:, :, [self.r_pos, self.g_pos, self.b_pos]])
     def set_grey_image_from_index(self, pos):
+        self.grey_pos = pos
+        if self.x_type == "wl_um" or self.x_type == "wl_nm":
+            self.grey_value = self.wl_wn.wl[self.grey_pos]
+        elif self.x_type == "wn_cm":
+            self.grey_value = self.wl_wn.wn[self.grey_pos]
         self.grey_image = GrayscaleImage(self.cube[:, :, pos])
