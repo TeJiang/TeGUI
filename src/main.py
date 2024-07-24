@@ -12,7 +12,7 @@ def main():
 
     mainwindow.show()
     # set window title
-    mainwindow.setWindowTitle("TeGui 0.1.0")
+    mainwindow.setWindowTitle("TeGui 0.1")
     sys.exit(app.exec())
 
 if __name__ == '__main__':

@@ -62,6 +62,7 @@ class ExampleData(Data):
                         y_idx = cy + j
                         if x_idx < self.x_num and y_idx < self.y_num:
                             cube[x_idx, y_idx, :] -= mask[i, j] * self.gaussian(wl, center, sigma, intensity)
+                            cube[x_idx, y_idx, :] += 0.1
 
         # Add heterogeneous background with OH absorption
         background_mask = self.generate_irregular_mask(self.x_num, 0.4)

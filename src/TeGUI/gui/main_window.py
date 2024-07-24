@@ -1,4 +1,5 @@
-from PyQt6.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog, QMainWindow
+from PyQt6.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog, QMainWindow, QHeaderView
+from PyQt6.QtGui import QFont
 import pyqtgraph as pg
 import os
 
@@ -26,6 +27,7 @@ class MainWindow(QMainWindow):
         self.set_menu()
         self.setup_tree_widget()
         self.set_splitter()
+        self.apply_initial_filter()
 
     def set_window(self):
         self.window_size = int(self.ui.comboBox_image_roi_size.currentText())
@@ -155,7 +157,8 @@ class MainWindow(QMainWindow):
         try:
             pos = event.pos()
             ppos = self.RGB_image_Item.mapToParent(pos)
-            if (0 <= ppos.x() < self.data.cube.rgb_image.image.shape[0]) and (0 <= ppos.y() < self.data.cube.rgb_image.image.shape[1]):
+            if (0 <= ppos.x() < self.data.cube.rgb_image.image.shape[0]) and (
+                    0 <= ppos.y() < self.data.cube.rgb_image.image.shape[1]):
                 self.mouse_x, self.mouse_y = int(ppos.x()), int(ppos.y())
                 self.ui.widget_RGB_Image.setTitle(f"x: {self.mouse_x}, y: {self.mouse_y}")
                 self.ui.widget_Index_Image.setTitle(f"x: {self.mouse_x}, y: {self.mouse_y}")
@@ -166,9 +169,19 @@ class MainWindow(QMainWindow):
                 # Update zoom image
                 self.update_zoom(self.mouse_x, self.mouse_y)
 
-                # Update spectrum
-                self.spectrum = self.data.cube.cube[self.mouse_x, self.mouse_y, :]
-                self.ui.widget_Spectrum.plot(self.data.cube.wl_wn.wl, self.spectrum, pen=pg.mkPen('w', width=2), clear=True)
+                # Define ROI window boundaries
+                x_min = max(self.mouse_x - self.half_window, 0)
+                x_max = min(self.mouse_x + self.half_window + 1, self.data.cube.cube.shape[0])
+                y_min = max(self.mouse_y - self.half_window, 0)
+                y_max = min(self.mouse_y + self.half_window + 1, self.data.cube.cube.shape[1])
+
+                # Extract ROI and calculate average spectrum
+                roi_spectrum = self.data.cube.cube[x_min:x_max, y_min:y_max, :]
+                self.spectrum = roi_spectrum.mean(axis=(0, 1))
+
+                # Update spectrum plot
+                self.ui.widget_Spectrum.plot(self.data.cube.wl_wn.wl, self.spectrum, pen=pg.mkPen('w', width=2),
+                                             clear=True)
                 self.add_spectrum_items()
 
         except Exception as e:
@@ -222,16 +235,43 @@ class MainWindow(QMainWindow):
         min_pos = [index for index, value in enumerate(distance_list) if value == min_distance]
         return min_pos
 
+    def human_readable_size(self, size, decimal_places=2):
+        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+            if size < 1024:
+                return f"{size:.{decimal_places}f} {unit}"
+            size /= 1024
+
     def setup_tree_widget(self):
-        self.ui.treeWidget.setHeaderLabels(['Name', 'Type', 'Size'])
+        self.ui.treeWidget.setHeaderLabels(['Name', 'Type', 'Size', 'Full Path'])
+        self.ui.treeWidget.header().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)  # Allow column resizing
+        self.ui.treeWidget.setColumnWidth(0, 400)
+        self.ui.treeWidget.setColumnWidth(1, 50)
+        self.ui.treeWidget.setColumnWidth(2, 150)
+        self.ui.treeWidget.setColumnWidth(3, 400)
         self.populate_tree(self.work_path, self.ui.treeWidget.invisibleRootItem())
         self.ui.treeWidget.expandAll()
         self.ui.lineEdit_search.textChanged.connect(self.search_items)
+        self.ui.comboBox_search_filter.currentIndexChanged.connect(self.apply_initial_filter)
+        self.apply_initial_filter()
+        self.adjust_column_widths()
+
+    def apply_initial_filter(self):
+        self.file_format_filter = self.ui.comboBox_search_filter.currentText()
+        self.search_items(self.file_format_filter)
+
+    def adjust_column_widths(self):
+        self.ui.treeWidget.resizeColumnToContents(1)  # Resize Type column to fit contents
+        self.ui.treeWidget.resizeColumnToContents(2)  # Resize Size column to fit contents
+        self.ui.treeWidget.resizeColumnToContents(3)  # Resize Full Path column to fit contents
+        # Optional: Adjust the Name column width after content adjustment
+        name_column_width = self.ui.treeWidget.columnWidth(0)
+        if name_column_width < 400:
+            self.ui.treeWidget.setColumnWidth(0, 400)  # Ensure the Name column is at least 200px wide
 
     def populate_tree(self, path, parent_item):
         for name in sorted(os.listdir(path)):
             full_path = os.path.join(path, name)
-            item = QTreeWidgetItem(parent_item, [name])
+            item = QTreeWidgetItem(parent_item, [os.path.basename(name)])
             self.add_file_details(item, full_path)
             if os.path.isdir(full_path):
                 self.populate_tree(full_path, item)
@@ -249,10 +289,29 @@ class MainWindow(QMainWindow):
         while it.value():
             item = it.value()
             item_text = item.text(0).lower()
-            item.setHidden(not all(keyword in item_text for keyword in keyword_list))
-            if not item.isHidden():
+            item_full_path = item.text(3).lower()
+            if all(keyword in item_text or keyword in item_full_path for keyword in keyword_list):
+                item.setHidden(False)
+                self.set_bold(item, keyword_list)
                 self.show_parents(item)
+            else:
+                item.setHidden(True)
+                self.clear_bold(item)
             it += 1
+
+    def set_bold(self, item, keyword_list):
+        font = QFont()
+        font.setBold(True)
+        for col in [0, 3]:  # Columns: 0 for Name, 3 for Full Path
+            item_text = item.text(col).lower()
+            if any(keyword in item_text for keyword in keyword_list):
+                item.setFont(col, font)
+
+    def clear_bold(self, item):
+        font = QFont()
+        font.setBold(False)
+        for col in [0, 3]:  # Columns: 0 for Name, 3 for Full Path
+            item.setFont(col, font)
 
     def show_parents(self, item):
         while item.parent():
@@ -261,11 +320,15 @@ class MainWindow(QMainWindow):
 
     def add_file_details(self, item, path):
         if os.path.isdir(path):
-            item.setText(1, "")
-            item.setText(2, "Folder")
+            # item.setText(1, "Folder")
+            # item.setText(2, "")
+            # item.setText(3, path)
+            pass
         else:
+            size = self.human_readable_size(os.path.getsize(path))
             item.setText(1, os.path.splitext(path)[1] if os.path.splitext(path)[1] else "File")
-            item.setText(2, f"{os.path.getsize(path)} bytes")
+            item.setText(2, size)
+            item.setText(3, path)
 
     def set_work_path(self):
         dialog = QFileDialog()
