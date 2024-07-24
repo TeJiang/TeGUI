@@ -1,3 +1,4 @@
+import numpy as np
 class Image:
     def __init__(self, data):
         self.image = data
@@ -11,6 +12,14 @@ class RGBImage(Image):
         super().__init__(data)
         # Additional attributes specific to RGB images
 
+    def rotate_cw(self):
+        self.image = np.rot90(self.image, k=-1, axes=(0, 1))
+    def rotate_acw(self):
+        self.image = np.rot90(self.image, k=1, axes=(0, 1))
+    def flip_ud(self):
+        self.image = np.flip(self.image, axis=0)
+    def flip_lr(self):
+        self.image = np.flip(self.image, axis=1)
     def display(self):
         # Implementation for displaying RGB images
         print("Displaying RGB image")
@@ -24,6 +33,14 @@ class GrayscaleImage(Image):
         super().__init__(data)
         # Additional attributes specific to grayscale images
 
+    def rotate_cw(self):
+        self.image = np.rot90(self.image, k=-1)
+    def rotate_acw(self):
+        self.image = np.rot90(self.image, k=1)
+    def flip_ud(self):
+        self.image = np.flipud(self.image)
+    def flip_lr(self):
+        self.image = np.fliplr(self.image)
     def display(self):
         # Implementation for displaying grayscale images
         print("Displaying grayscale image")

@@ -1,6 +1,8 @@
 from PyQt6 import QtWidgets
 from src.TeGUI.gui.main_window import MainWindow
 import sys
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

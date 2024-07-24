@@ -1,13 +1,20 @@
-from PyQt6.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog, QMainWindow, QHeaderView
-from PyQt6.QtGui import QFont
-import pyqtgraph as pg
 import os
+os.environ['QT_LOGGING_RULES'] = 'qt.pointer.*=false'
+import logging
+logging.basicConfig(filename='main_window.log', level=logging.ERROR)
 
-from src.TeGUI.gui.TeGUI_MainWindow import Ui_MainWindow
-from src.TeGUI.io.io import IO
+
+import pyqtgraph as pg
+from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog, QMainWindow, QHeaderView
+
 from src.TeGUI.data_analysis.example_data import ExampleData
+from src.TeGUI.gui.TeGUI_MainWindow import Ui_MainWindow
+
 
 class MainWindow(QMainWindow):
+    """This is a brief one-line description of MainWindow class"""
+    ...
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.ui = Ui_MainWindow()
@@ -47,7 +54,7 @@ class MainWindow(QMainWindow):
 
     def set_index_image(self):
         self.Index_image_Item = pg.ImageItem()
-        self.Index_image_Item.setImage(self.data.cube.brightness.image)
+        self.Index_image_Item.setImage(self.data.cube.grey_image.image)
         self.ui.widget_Index_Image.addItem(self.Index_image_Item)
         self.ui.widget_Index_Image.setAspectLocked(lock=True, ratio=1)
         self.ui.widget_Index_Image.setTitle("Index image")
@@ -89,21 +96,27 @@ class MainWindow(QMainWindow):
     def flip_data_ud(self):
         self.data.cube.flip_ud()
         self.update_RGB_image()
+        self.update_Index_image()
 
     def flip_data_lr(self):
         self.data.cube.flip_lr()
         self.update_RGB_image()
+        self.update_Index_image()
 
     def rotate_data_cw(self):
         self.data.cube.rotate_cw()
         self.update_RGB_image()
+        self.update_Index_image()
 
     def rotate_data_acw(self):
         self.data.cube.rotate_acw()
         self.update_RGB_image()
+        self.update_Index_image()
 
     def update_RGB_image(self):
-        self.RGB_image_Item.setImage(self.data.cube.rgb_image)
+        self.RGB_image_Item.setImage(self.data.cube.rgb_image.image)
+    def update_Index_image(self):
+        self.Index_image_Item.setImage(self.data.cube.grey_image.image)
 
     def set_hover(self):
         self.RGB_image_Item.hoverEvent = self.imageHoverEvent_on
@@ -116,7 +129,6 @@ class MainWindow(QMainWindow):
 
         self.vl_spectrum = pg.InfiniteLine(angle=90, movable=False)
         self.hl_spectrum = pg.InfiniteLine(angle=0, movable=False)
-        print(self.data.cube.r_value_c)
 
         self.R_line = pg.InfiniteLine(
             pos=self.data.cube.r_value_c,
@@ -185,7 +197,8 @@ class MainWindow(QMainWindow):
                 self.add_spectrum_items()
 
         except Exception as e:
-            print(f"Hover Event Error: {e}")
+            logging.error(f"Hover Event Error: {e}")
+            # print(f"Hover Event Error: {e}")
 
     def update_cross_lines_and_ROI(self, mouse_x, mouse_y):
         for name in ['RGB_image', 'Index_image']:

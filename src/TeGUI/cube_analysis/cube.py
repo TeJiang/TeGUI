@@ -33,17 +33,37 @@ class Cube:
         self.wl_wn = Wl_Wn(x=self.x, x_type=self.x_type)
     def rotate_cw(self):
         self.cube = np.rot90(self.cube, k=-1, axes=(0, 1))
+        self.r_image = np.rot90(self.r_image, k=-1)
+        self.g_image = np.rot90(self.g_image, k=-1)
+        self.b_image = np.rot90(self.b_image, k=-1)
+        self.rgb_image.rotate_cw()    # assuming RGBImage has rotate_cw() method
+        self.grey_image.rotate_cw()   # assuming GrayscaleImage has rotate_cw() method
+
     def rotate_acw(self):
         self.cube = np.rot90(self.cube, k=1, axes=(0, 1))
+        self.r_image = np.rot90(self.r_image, k=1)
+        self.g_image = np.rot90(self.g_image, k=1)
+        self.b_image = np.rot90(self.b_image, k=1)
+        self.rgb_image.rotate_acw()   # assuming RGBImage has rotate_acw() method
+        self.grey_image.rotate_acw()  # assuming GrayscaleImage has rotate_acw() method
+
     def flip_lr(self):
         self.cube = np.flip(self.cube, axis=1)
+        self.r_image = np.fliplr(self.r_image)
+        self.g_image = np.fliplr(self.g_image)
+        self.b_image = np.fliplr(self.b_image)
+        self.rgb_image.flip_lr()      # assuming RGBImage has flip_lr() method
+        self.grey_image.flip_lr()     # assuming GrayscaleImage has flip_lr() method
+
     def flip_ud(self):
         self.cube = np.flip(self.cube, axis=0)
+        self.r_image = np.flipud(self.r_image)
+        self.g_image = np.flipud(self.g_image)
+
     def set_rgb_image_from_value(self, r_value, g_value, b_value):
         self.r_value_c, self.r_pos = self.wl_wn.find_closest_value(ref_value=r_value,x_type_wl_or_wn='wl')
         self.g_value_c, self.g_pos = self.wl_wn.find_closest_value(ref_value=g_value, x_type_wl_or_wn='wl')
         self.b_value_c, self.b_pos = self.wl_wn.find_closest_value(ref_value=b_value, x_type_wl_or_wn='wl')
-        print(self.r_value_c, self.r_pos)
         self.set_rgb_image_from_index(self.r_pos, self.g_pos, self.b_pos)
 
     def set_rgb_image_from_index(self, r_pos, g_pos, b_pos):
@@ -67,5 +87,11 @@ class Cube:
         elif self.x_type == "wn_cm":
             self.grey_value = self.wl_wn.wn[self.grey_pos]
         self.grey_image = GrayscaleImage(self.cube[:, :, pos])
+    def set_grey_image_from_outside(self, image):
+        self.grey_image = GrayscaleImage(image.copy())
+        self.grey_pos = None
+        self.grey_value = None
+
     def cal_brightness(self):
         self.brightness = GrayscaleImage(np.average(self.cube, axis=2))
+        self.set_grey_image_from_outside(self.brightness.image)

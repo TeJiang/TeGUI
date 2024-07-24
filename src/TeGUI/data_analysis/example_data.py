@@ -96,8 +96,6 @@ class ExampleData(Data):
         # Set RGB image from specific wavelength values
         r_value, g_value, b_value = 2.5, 2.7, 3.4
         self.cube.set_rgb_image_from_value(r_value, g_value, b_value)
-        print(self.cube.r_value_c)
-
 
 if __name__ == '__main__':
     data = ExampleData()
