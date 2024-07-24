@@ -11,9 +11,6 @@ class IO:
         return Cube(data)
 
     @staticmethod
-    def load_example_data():
-        return ExampleData()
-    @staticmethod
     def load_image(file_path, image_type='rgb'):
         data = IO._read_file(file_path)
         if image_type == 'rgb':

@@ -4,6 +4,7 @@ import os
 
 from src.TeGUI.gui.TeGUI_MainWindow import Ui_MainWindow
 from src.TeGUI.io.io import IO
+from src.TeGUI.data_analysis.example_data import ExampleData
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -11,7 +12,7 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.work_path = os.getcwd()
-        self.data = IO.load_example_data()
+        self.data = ExampleData()
         self.setup_ui()
 
     def setup_ui(self):
@@ -36,7 +37,7 @@ class MainWindow(QMainWindow):
 
     def set_RGB_image(self):
         self.RGB_image_Item = pg.ImageItem()
-        self.RGB_image_Item.setImage(self.data.RGB_image)
+        self.RGB_image_Item.setImage(self.data.cube.rgb_image.image)
         self.ui.widget_RGB_Image.addItem(self.RGB_image_Item)
         self.ui.widget_RGB_Image.setAspectLocked(lock=True, ratio=1)
         self.ui.widget_RGB_Image.setTitle("RGB image")
@@ -44,7 +45,7 @@ class MainWindow(QMainWindow):
 
     def set_index_image(self):
         self.Index_image_Item = pg.ImageItem()
-        self.Index_image_Item.setImage(self.data.Index_image)
+        self.Index_image_Item.setImage(self.data.cube.brightness.image)
         self.ui.widget_Index_Image.addItem(self.Index_image_Item)
         self.ui.widget_Index_Image.setAspectLocked(lock=True, ratio=1)
         self.ui.widget_Index_Image.setTitle("Index image")
@@ -52,7 +53,7 @@ class MainWindow(QMainWindow):
 
     def set_RGB_image_zoom(self):
         self.RGB_image_zoom_Item = pg.ImageItem()
-        self.RGB_image_zoom_Item.setImage(self.data.RGB_image)
+        self.RGB_image_zoom_Item.setImage(self.data.cube.rgb_image.image)
         self.ui.widget_RGB_Image_Zoom.addItem(self.RGB_image_zoom_Item)
         self.ui.widget_RGB_Image_Zoom.hideAxis("bottom")
         self.ui.widget_RGB_Image_Zoom.hideAxis("left")
@@ -60,7 +61,7 @@ class MainWindow(QMainWindow):
 
     def set_index_image_zoom(self):
         self.Index_image_zoom_Item = pg.ImageItem()
-        self.Index_image_zoom_Item.setImage(self.data.Index_image)
+        self.Index_image_zoom_Item.setImage(self.data.cube.brightness.image)
         self.ui.widget_Index_Image_Zoom.addItem(self.Index_image_zoom_Item)
         self.ui.widget_Index_Image_Zoom.getPlotItem().hideAxis("bottom")
         self.ui.widget_Index_Image_Zoom.getPlotItem().hideAxis("left")
@@ -84,23 +85,23 @@ class MainWindow(QMainWindow):
         self.ui.actionAntiClockwise_rotate.triggered.connect(self.rotate_data_acw)
 
     def flip_data_ud(self):
-        self.data.RGB_image = DataOperations.flip_ud(self.data.RGB_image)
+        self.data.cube.flip_ud()
         self.update_RGB_image()
 
     def flip_data_lr(self):
-        self.data.RGB_image = DataOperations.flip_lr(self.data.RGB_image)
+        self.data.cube.flip_lr()
         self.update_RGB_image()
 
     def rotate_data_cw(self):
-        self.data.RGB_image = DataOperations.rotate_cw(self.data.RGB_image)
+        self.data.cube.rotate_cw()
         self.update_RGB_image()
 
     def rotate_data_acw(self):
-        self.data.RGB_image = DataOperations.rotate_acw(self.data.RGB_image)
+        self.data.cube.rotate_acw()
         self.update_RGB_image()
 
     def update_RGB_image(self):
-        self.RGB_image_Item.setImage(self.data.RGB_image)
+        self.RGB_image_Item.setImage(self.data.cube.rgb_image)
 
     def set_hover(self):
         self.RGB_image_Item.hoverEvent = self.imageHoverEvent_on
@@ -113,23 +114,24 @@ class MainWindow(QMainWindow):
 
         self.vl_spectrum = pg.InfiniteLine(angle=90, movable=False)
         self.hl_spectrum = pg.InfiniteLine(angle=0, movable=False)
+        print(self.data.cube.r_value_c)
 
         self.R_line = pg.InfiniteLine(
-            pos=self.data.wl[self.data.rgb_indices[0]],
+            pos=self.data.cube.r_value_c,
             angle=90,
             pen=pg.mkPen("r", width=1),
             hoverPen=pg.mkPen("r", width=4),
             movable=True,
         )
         self.G_line = pg.InfiniteLine(
-            pos=self.data.wl[self.data.rgb_indices[1]],
+            pos=self.data.cube.g_value_c,
             angle=90,
             pen=pg.mkPen("g", width=1),
             hoverPen=pg.mkPen("g", width=4),
             movable=True,
         )
         self.B_line = pg.InfiniteLine(
-            pos=self.data.wl[self.data.rgb_indices[2]],
+            pos=self.data.cube.b_value_c,
             angle=90,
             pen=pg.mkPen("b", width=1),
             hoverPen=pg.mkPen("b", width=4),
@@ -153,7 +155,7 @@ class MainWindow(QMainWindow):
         try:
             pos = event.pos()
             ppos = self.RGB_image_Item.mapToParent(pos)
-            if (0 <= ppos.x() < self.data.RGB_image.shape[0]) and (0 <= ppos.y() < self.data.RGB_image.shape[1]):
+            if (0 <= ppos.x() < self.data.cube.rgb_image.image.shape[0]) and (0 <= ppos.y() < self.data.cube.rgb_image.image.shape[1]):
                 self.mouse_x, self.mouse_y = int(ppos.x()), int(ppos.y())
                 self.ui.widget_RGB_Image.setTitle(f"x: {self.mouse_x}, y: {self.mouse_y}")
                 self.ui.widget_Index_Image.setTitle(f"x: {self.mouse_x}, y: {self.mouse_y}")
@@ -165,8 +167,8 @@ class MainWindow(QMainWindow):
                 self.update_zoom(self.mouse_x, self.mouse_y)
 
                 # Update spectrum
-                self.spectrum = self.data.cube[self.mouse_x, self.mouse_y, :]
-                self.ui.widget_Spectrum.plot(self.data.wl, self.spectrum, pen=pg.mkPen('w', width=2), clear=True)
+                self.spectrum = self.data.cube.cube[self.mouse_x, self.mouse_y, :]
+                self.ui.widget_Spectrum.plot(self.data.cube.wl_wn.wl, self.spectrum, pen=pg.mkPen('w', width=2), clear=True)
                 self.add_spectrum_items()
 
         except Exception as e:
@@ -206,16 +208,16 @@ class MainWindow(QMainWindow):
             self.ui.widget_Spectrum.addItem(self.arrow_spectrum_point)
 
         if hasattr(self, "spectrum"):
-            self.arrow_spectrum_point.setPos(self.data.wl[self.closest_wl_pos], self.spectrum[self.closest_wl_pos])
+            self.arrow_spectrum_point.setPos(self.data.cube.wl_wn.wl[self.closest_wl_pos], self.spectrum[self.closest_wl_pos])
             self.ui.widget_Spectrum.setTitle(
-                f"wl: {self.data.wl[self.closest_wl_pos]:.4f}, "
+                f"wl: {self.data.cube.wl_wn.wl[self.closest_wl_pos]:.4f}, "
                 f"ref: {self.spectrum[self.closest_wl_pos]:.4f}, "
                 f"depth: {abs(ppos.y() - self.spectrum[self.closest_wl_pos]):.4f}, "
                 f"{(abs(ppos.y() - self.spectrum[self.closest_wl_pos]) / ppos.y() * 100):.1f}%"
             )
 
     def find_wl_pos(self, pos_x):
-        distance_list = [abs(pos_x - x) for x in self.data.wl]
+        distance_list = [abs(pos_x - x) for x in self.data.cube.wl_wn.wl]
         min_distance = min(distance_list)
         min_pos = [index for index, value in enumerate(distance_list) if value == min_distance]
         return min_pos

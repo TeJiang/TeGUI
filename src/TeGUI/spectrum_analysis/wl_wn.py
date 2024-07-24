@@ -3,6 +3,7 @@ class Wl_Wn():
     def __init__(self, x, x_type):
         self.x = x
         self.x_type = x_type
+        self.set_wl_wn()
 
     def set_wl_wn(self):
         ### all the wl set to um unit
