@@ -7,6 +7,7 @@ logging.basicConfig(filename='main_window.log', level=logging.ERROR)
 import pyqtgraph as pg
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog, QMainWindow, QHeaderView
+from PyQt6.QtCore import Qt
 
 from src.TeGUI.data_analysis.example_data import ExampleData
 from src.TeGUI.gui.TeGUI_MainWindow import Ui_MainWindow
@@ -119,8 +120,9 @@ class MainWindow(QMainWindow):
         self.Index_image_Item.setImage(self.data.cube.grey_image.image)
 
     def set_hover(self):
-        self.RGB_image_Item.hoverEvent = self.imageHoverEvent_on
+        self.RGB_image_Item.hoverEvent = self.imageHoverEvent_On
         self.ui.widget_Spectrum.mouseMoveEvent = self.spectrumHoverEvent_On
+        self.hover_Bool = 1
 
     def set_spectrum(self):
         self.ui.widget_Spectrum.setTitle("Spectrum")
@@ -165,7 +167,7 @@ class MainWindow(QMainWindow):
             brush=pg.mkBrush("r")
         )
 
-    def imageHoverEvent_on(self, event):
+    def imageHoverEvent_On(self, event):
         try:
             pos = event.pos()
             ppos = self.RGB_image_Item.mapToParent(pos)
@@ -199,7 +201,8 @@ class MainWindow(QMainWindow):
         except Exception as e:
             logging.error(f"Hover Event Error: {e}")
             # print(f"Hover Event Error: {e}")
-
+    def imageHoverEvent_Off(self, event):
+        pass
     def update_cross_lines_and_ROI(self, mouse_x, mouse_y):
         for name in ['RGB_image', 'Index_image']:
             getattr(self, f'vl_{name}').setPos(mouse_x)
@@ -360,3 +363,22 @@ class MainWindow(QMainWindow):
             self.ui.dockWidget_Files.hide()
             self.ui.dockWidget.hide()
             self.bool_hide_dockWindow = True
+
+    def keyPressEvent(self, ev):
+        # if hove was off and pressed 'h', turn it on
+        if ev.key() == Qt.Key.Key_H and self.hover_Bool == 0:
+            self.hover_Bool = 1
+            self.RGB_image_Item.hoverEvent = self.imageHoverEvent_On
+            print("hover on")
+        # if hove was on and pressed 'h', turn it off
+        elif ev.key() == Qt.Key.Key_H and self.hover_Bool == 1:
+            self.hover_Bool = 0
+            self.RGB_image_Item.hoverEvent = self.imageHoverEvent_Off
+            print("hover off")
+        elif ev.key() == Qt.Key.Key_Question:
+            print(
+                "-------------------------------------------\n"
+                "h: hover event on/off"
+                "?: print this txt\n"
+                "-------------------------------------------"
+            )
