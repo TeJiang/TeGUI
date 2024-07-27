@@ -8,6 +8,9 @@ class Image:
         pass
 
 class RGBImage(Image):
+    """
+    normally, [xx, yy, [r, g, b]], i.e., three layer
+    """
     def __init__(self, data):
         super().__init__(data)
         # Additional attributes specific to RGB images
@@ -29,6 +32,9 @@ class RGBImage(Image):
         pass
 
 class GrayscaleImage(Image):
+    """
+    normally, [xx, yy, grey], i.e., one layer
+    """
     def __init__(self, data):
         super().__init__(data)
         # Additional attributes specific to grayscale images

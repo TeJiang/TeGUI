@@ -4,7 +4,7 @@ import sys
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-def main():
+def tegui():
     app = QtWidgets.QApplication(sys.argv)
     mainwindow = MainWindow()
 
@@ -18,4 +18,4 @@ def main():
     sys.exit(app.exec())
 
 if __name__ == '__main__':
-    main()
+    tegui()

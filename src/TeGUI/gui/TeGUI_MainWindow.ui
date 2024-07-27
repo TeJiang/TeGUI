@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1093</width>
-    <height>694</height>
+    <height>695</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -404,6 +404,10 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+    <addaction name="separator"/>
+    <addaction name="actionSetting"/>
    </widget>
    <widget class="QMenu" name="menuImage">
     <property name="title">
@@ -1259,6 +1263,21 @@
    </property>
    <property name="toolTip">
     <string>Show or hide dock window</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="text">
+    <string>Redo</string>
+   </property>
+  </action>
+  <action name="actionSetting">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>

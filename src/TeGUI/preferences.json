@@ -1,0 +1,11 @@
+{
+
+  "layout": "default",
+
+  "theme": "light",
+
+  "x_axes_variable": "wavelength",
+  "x_axes_unit": "um",
+
+  "rgb_vertical_line_position": [2.5, 2.7, 3.4]
+}

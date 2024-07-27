@@ -1,4 +1,7 @@
 import os
+
+from src.TeGUI.settings import Settings
+
 os.environ['QT_LOGGING_RULES'] = 'qt.pointer.*=false'
 import logging
 logging.basicConfig(filename='main_window.log', level=logging.ERROR)
@@ -94,6 +97,8 @@ class MainWindow(QMainWindow):
         self.ui.actionClockwise_rotate.triggered.connect(self.rotate_data_cw)
         self.ui.actionAntiClockwise_rotate.triggered.connect(self.rotate_data_acw)
 
+        self.ui.actionSetting.triggered.connect(self.openSetting)
+
     def flip_data_ud(self):
         self.data.cube.flip_ud()
         self.update_RGB_image()
@@ -113,6 +118,10 @@ class MainWindow(QMainWindow):
         self.data.cube.rotate_acw()
         self.update_RGB_image()
         self.update_Index_image()
+
+    def openSetting(self):
+        self.settings = Settings()
+        print("test")
 
     def update_RGB_image(self):
         self.RGB_image_Item.setImage(self.data.cube.rgb_image.image)
