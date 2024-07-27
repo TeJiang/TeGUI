@@ -1,7 +1,5 @@
 import os
 
-from src.TeGUI.settings import Settings
-
 os.environ['QT_LOGGING_RULES'] = 'qt.pointer.*=false'
 import logging
 logging.basicConfig(filename='main_window.log', level=logging.ERROR)
@@ -9,9 +7,11 @@ logging.basicConfig(filename='main_window.log', level=logging.ERROR)
 
 import pyqtgraph as pg
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog, QMainWindow, QHeaderView
+from PyQt6.QtWidgets import QWidget, QTreeWidgetItem, QTreeWidgetItemIterator, QFileDialog, QMainWindow, QHeaderView
 from PyQt6.QtCore import Qt
 
+from src.TeGUI.settings import Settings
+from src.TeGUI.gui.setting_window import SettingWindow
 from src.TeGUI.data_analysis.example_data import ExampleData
 from src.TeGUI.gui.TeGUI_MainWindow import Ui_MainWindow
 
@@ -120,8 +120,8 @@ class MainWindow(QMainWindow):
         self.update_Index_image()
 
     def openSetting(self):
-        self.settings = Settings()
-        print("test")
+        self.settingWindow = SettingWindow()
+        self.settingWindow.show()
 
     def update_RGB_image(self):
         self.RGB_image_Item.setImage(self.data.cube.rgb_image.image)
